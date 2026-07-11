@@ -1,0 +1,52 @@
+import { eq } from "drizzle-orm";
+import { notFound } from "next/navigation";
+import { db } from "@/db";
+import { vehicles, checklistTemplates, checklistItems } from "@/db/schema";
+import { requireSession } from "@/lib/auth-helpers";
+import { submitInspection } from "../actions";
+import { InspectForm } from "./inspect-form";
+
+export default async function InspectPage({
+  params,
+}: {
+  params: Promise<{ vehicleId: string }>;
+}) {
+  await requireSession();
+  const { vehicleId } = await params;
+  const id = Number(vehicleId);
+
+  const [vehicle] = await db.select().from(vehicles).where(eq(vehicles.id, id)).limit(1);
+  if (!vehicle || !vehicle.active) notFound();
+
+  const [template] = await db
+    .select()
+    .from(checklistTemplates)
+    .orderBy(checklistTemplates.id)
+    .limit(1);
+  if (!template) notFound();
+
+  const items = await db
+    .select()
+    .from(checklistItems)
+    .where(eq(checklistItems.templateId, template.id))
+    .orderBy(checklistItems.sortOrder);
+
+  const itemsByCategory = Object.entries(
+    items.reduce<Record<string, typeof items>>((acc, item) => {
+      (acc[item.category] ??= []).push(item);
+      return acc;
+    }, {})
+  );
+
+  const boundSubmit = submitInspection.bind(null, vehicle.id, template.id);
+
+  return (
+    <div className="mx-auto max-w-3xl px-4 py-8">
+      <h1 className="text-2xl font-semibold text-neutral-900">
+        Inspect {vehicle.vin}
+      </h1>
+      <p className="mb-6 text-sm text-neutral-500">{template.name}</p>
+      <InspectForm action={boundSubmit} itemsByCategory={itemsByCategory} />
+    </div>
+  );
+}
