@@ -87,3 +87,4 @@ From your Vercel project: **Storage → Create Database → Blob**, then copy th
 - `npm run build` / `npm run start` — production build/start
 - `npm run db:push` — push the Drizzle schema to the configured database
 - `npm run db:seed` — seed the default checklist template and an admin user
+
