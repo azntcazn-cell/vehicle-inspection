@@ -5,8 +5,14 @@ import { uploadInspectionMedia } from "../actions";
 
 type MediaItem = { url: string; type: "image" | "video" };
 
-export function MediaUpload({ itemId }: { itemId: number }) {
-  const [media, setMedia] = useState<MediaItem[]>([]);
+export function MediaUpload({
+  itemId,
+  initialMedia,
+}: {
+  itemId: number;
+  initialMedia?: MediaItem[];
+}) {
+  const [media, setMedia] = useState<MediaItem[]>(initialMedia ?? []);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

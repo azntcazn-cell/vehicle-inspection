@@ -12,3 +12,10 @@ export async function requireAdmin() {
   if (session.user.role !== "admin") redirect("/");
   return session;
 }
+
+export function canEditInspection(
+  session: { user: { id: string; role: "admin" | "inspector" } },
+  inspectorId: number
+) {
+  return session.user.role === "admin" || Number(session.user.id) === inspectorId;
+}

@@ -10,7 +10,7 @@ import {
   inspectionResults,
   inspectionMedia,
 } from "@/db/schema";
-import { requireSession } from "@/lib/auth-helpers";
+import { requireSession, canEditInspection } from "@/lib/auth-helpers";
 import { storeMedia } from "@/lib/media-storage";
 
 export type InspectionFormState = { error?: string } | undefined;
@@ -38,14 +38,23 @@ export async function uploadInspectionMedia(
   return { url, type };
 }
 
-export async function submitInspection(
-  vehicleId: number,
-  templateId: number,
-  _prevState: InspectionFormState,
-  formData: FormData
-): Promise<InspectionFormState> {
-  const session = await requireSession();
+type ParsedInspectionForm = {
+  odometer: number | null;
+  notes: string | null;
+  diagramUrl: string | null;
+  diagramLabels: string | null;
+  results: {
+    itemId: number;
+    status: "pass" | "fail" | "na";
+    notes: string | null;
+    media: { url: string; type: "image" | "video" }[];
+  }[];
+};
 
+async function parseInspectionForm(
+  templateId: number,
+  formData: FormData
+): Promise<ParsedInspectionForm | { error: string }> {
   const odometerRaw = formData.get("odometer");
   const odometer = odometerRaw ? Number(odometerRaw) : null;
   const notes = (formData.get("notes") as string) || null;
@@ -69,12 +78,7 @@ export async function submitInspection(
     .from(checklistItems)
     .where(eq(checklistItems.templateId, templateId));
 
-  const results: {
-    itemId: number;
-    status: "pass" | "fail" | "na";
-    notes: string | null;
-    media: { url: string; type: "image" | "video" }[];
-  }[] = [];
+  const results: ParsedInspectionForm["results"] = [];
 
   for (const item of items) {
     const status = formData.get(`item-${item.id}`);
@@ -96,26 +100,18 @@ export async function submitInspection(
     results.push({ itemId: item.id, status, notes: itemNotes, media });
   }
 
-  const [inspection] = await db
-    .insert(inspections)
-    .values({
-      vehicleId,
-      inspectorId: Number(session.user.id),
-      templateId,
-      odometer,
-      status: "completed",
-      notes,
-      diagramUrl,
-      diagramLabels,
-      completedAt: new Date().toISOString(),
-    })
-    .returning();
+  return { odometer, notes, diagramUrl, diagramLabels, results };
+}
 
+async function saveInspectionResults(
+  inspectionId: number,
+  results: ParsedInspectionForm["results"]
+) {
   const insertedResults = await db
     .insert(inspectionResults)
     .values(
       results.map((r) => ({
-        inspectionId: inspection.id,
+        inspectionId,
         itemId: r.itemId,
         status: r.status,
         notes: r.notes,
@@ -135,8 +131,80 @@ export async function submitInspection(
   if (mediaRows.length > 0) {
     await db.insert(inspectionMedia).values(mediaRows);
   }
+}
+
+export async function submitInspection(
+  vehicleId: number,
+  templateId: number,
+  _prevState: InspectionFormState,
+  formData: FormData
+): Promise<InspectionFormState> {
+  const session = await requireSession();
+
+  const parsed = await parseInspectionForm(templateId, formData);
+  if ("error" in parsed) return parsed;
+
+  const [inspection] = await db
+    .insert(inspections)
+    .values({
+      vehicleId,
+      inspectorId: Number(session.user.id),
+      templateId,
+      odometer: parsed.odometer,
+      status: "completed",
+      notes: parsed.notes,
+      diagramUrl: parsed.diagramUrl,
+      diagramLabels: parsed.diagramLabels,
+      completedAt: new Date().toISOString(),
+    })
+    .returning();
+
+  await saveInspectionResults(inspection.id, parsed.results);
 
   revalidatePath("/history");
   revalidatePath("/");
   redirect(`/history/${inspection.id}`);
+}
+
+export async function updateInspection(
+  inspectionId: number,
+  templateId: number,
+  _prevState: InspectionFormState,
+  formData: FormData
+): Promise<InspectionFormState> {
+  const session = await requireSession();
+
+  const [existing] = await db
+    .select()
+    .from(inspections)
+    .where(eq(inspections.id, inspectionId))
+    .limit(1);
+  if (!existing) return { error: "Inspection not found." };
+  if (!canEditInspection(session, existing.inspectorId)) {
+    return { error: "You don't have permission to edit this inspection." };
+  }
+
+  const parsed = await parseInspectionForm(templateId, formData);
+  if ("error" in parsed) return parsed;
+
+  await db
+    .update(inspections)
+    .set({
+      odometer: parsed.odometer,
+      notes: parsed.notes,
+      diagramUrl: parsed.diagramUrl,
+      diagramLabels: parsed.diagramLabels,
+      updatedAt: new Date().toISOString(),
+    })
+    .where(eq(inspections.id, inspectionId));
+
+  // Replace results/media wholesale rather than diffing — simpler and
+  // cascade-deletes the old inspection_media rows along with the results.
+  await db.delete(inspectionResults).where(eq(inspectionResults.inspectionId, inspectionId));
+  await saveInspectionResults(inspectionId, parsed.results);
+
+  revalidatePath("/history");
+  revalidatePath(`/history/${inspectionId}`);
+  revalidatePath("/");
+  redirect(`/history/${inspectionId}`);
 }

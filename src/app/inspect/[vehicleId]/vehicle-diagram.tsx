@@ -10,18 +10,27 @@ const HEIGHT = 983; // matches vehicle-diagram.jpg pixel dimensions
 type Label = { id: number; x: number; y: number; text: string };
 type Mode = "draw" | "label";
 
-export function VehicleDiagram() {
+export function VehicleDiagram({
+  initialImageUrl,
+  initialLabels,
+}: {
+  initialImageUrl?: string;
+  initialLabels?: { x: number; y: number; text: string }[];
+} = {}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawing = useRef(false);
   const lastPoint = useRef<{ x: number; y: number } | null>(null);
+  const bgImageUrl = initialImageUrl || "/vehicle-diagram.jpg";
 
   const [mode, setMode] = useState<Mode>("draw");
   const [color, setColor] = useState(COLORS[0]);
   const [lineWidth, setLineWidth] = useState(3);
   const [hasMarks, setHasMarks] = useState(false);
-  const [labels, setLabels] = useState<Label[]>([]);
+  const [labels, setLabels] = useState<Label[]>(
+    () => initialLabels?.map((l, i) => ({ id: Date.now() + i, ...l })) ?? []
+  );
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [diagramUrl, setDiagramUrl] = useState("");
+  const [diagramUrl, setDiagramUrl] = useState(initialImageUrl ?? "");
   const [saving, setSaving] = useState(false);
 
   function getPos(clientX: number, clientY: number) {
@@ -104,7 +113,8 @@ export function VehicleDiagram() {
       const canvas = canvasRef.current!;
 
       const bg = new Image();
-      bg.src = "/vehicle-diagram.jpg";
+      bg.crossOrigin = "anonymous";
+      bg.src = bgImageUrl;
       await new Promise((resolve, reject) => {
         bg.onload = resolve;
         bg.onerror = reject;
@@ -219,7 +229,7 @@ export function VehicleDiagram() {
       <div className="relative mx-auto w-full max-w-xs touch-none select-none overflow-hidden rounded-lg border border-neutral-200 bg-white">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/vehicle-diagram.jpg"
+          src={bgImageUrl}
           alt="Vehicle diagram"
           className="pointer-events-none w-full"
           draggable={false}

@@ -72,6 +72,7 @@ export const inspections = sqliteTable("inspections", {
     .notNull()
     .default(sql`(current_timestamp)`),
   completedAt: text("completed_at"),
+  updatedAt: text("updated_at"),
 });
 
 export const inspectionResults = sqliteTable("inspection_results", {

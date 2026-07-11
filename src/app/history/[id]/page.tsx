@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { eq, inArray } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { db } from "@/db";
@@ -9,14 +10,14 @@ import {
   checklistItems,
   inspectionMedia,
 } from "@/db/schema";
-import { requireSession } from "@/lib/auth-helpers";
+import { requireSession, canEditInspection } from "@/lib/auth-helpers";
 
 export default async function InspectionDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireSession();
+  const session = await requireSession();
   const { id } = await params;
   const inspectionId = Number(id);
 
@@ -30,6 +31,8 @@ export default async function InspectionDetailPage({
       diagramLabels: inspections.diagramLabels,
       startedAt: inspections.startedAt,
       completedAt: inspections.completedAt,
+      updatedAt: inspections.updatedAt,
+      inspectorId: inspections.inspectorId,
       vehicleVin: vehicles.vin,
       inspectorName: users.name,
     })
@@ -90,15 +93,32 @@ export default async function InspectionDetailPage({
     }
   }
 
+  const canEdit = canEditInspection(session, inspection.inspectorId);
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
-      <h1 className="text-2xl font-semibold text-neutral-900">
-        {inspection.vehicleVin}
-      </h1>
+      <div className="flex items-start justify-between gap-4">
+        <h1 className="text-2xl font-semibold text-neutral-900">
+          {inspection.vehicleVin}
+        </h1>
+        {canEdit && (
+          <Link
+            href={`/history/${inspection.id}/edit`}
+            className="shrink-0 rounded-md border border-neutral-300 px-3 py-1.5 text-sm font-medium text-neutral-700 transition hover:bg-neutral-100"
+          >
+            Edit
+          </Link>
+        )}
+      </div>
       <p className="mb-1 text-sm text-neutral-500">
         Inspected by {inspection.inspectorName} on{" "}
         {new Date(inspection.startedAt).toLocaleString()}
       </p>
+      {inspection.updatedAt && (
+        <p className="mb-1 text-sm text-neutral-500">
+          Last edited {new Date(inspection.updatedAt).toLocaleString()}
+        </p>
+      )}
       {inspection.odometer != null && (
         <p className="mb-1 text-sm text-neutral-500">
           Odometer: {inspection.odometer}
