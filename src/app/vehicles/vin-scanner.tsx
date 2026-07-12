@@ -6,6 +6,23 @@ import { BarcodeFormat, DecodeHintType } from "@zxing/library";
 
 const VIN_PATTERN = /^[A-HJ-NPR-Z0-9]{17}$/;
 
+function cameraErrorMessage(err: unknown): string {
+  const name = err instanceof Error ? err.name : "";
+  switch (name) {
+    case "NotAllowedError":
+    case "PermissionDeniedError":
+      return "Camera permission was denied. Allow camera access for this site in your browser settings, then try again.";
+    case "NotFoundError":
+    case "OverconstrainedError":
+      return "No camera was found on this device.";
+    case "NotReadableError":
+    case "TrackStartError":
+      return "The camera is in use by another app. Close it and try again.";
+    default:
+      return "Couldn't access the camera. Check camera permissions and try again.";
+  }
+}
+
 export function VinScanner({ onScan }: { onScan: (vin: string) => void }) {
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -16,6 +33,13 @@ export function VinScanner({ onScan }: { onScan: (vin: string) => void }) {
   useEffect(() => {
     if (!open) return;
 
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setError(
+        "This browser doesn't support camera access (it requires HTTPS)."
+      );
+      return;
+    }
+
     let cancelled = false;
     const hints = new Map();
     hints.set(DecodeHintType.POSSIBLE_FORMATS, [
@@ -25,17 +49,23 @@ export function VinScanner({ onScan }: { onScan: (vin: string) => void }) {
     ]);
     const reader = new BrowserMultiFormatReader(hints);
 
+    // Ask for the rear camera explicitly — the default video device on
+    // phones is often the front camera, which can't be aimed at a VIN.
     reader
-      .decodeFromVideoDevice(undefined, videoRef.current!, (result) => {
-        if (cancelled || !result) return;
-        const text = result.getText().trim().toUpperCase();
-        if (VIN_PATTERN.test(text)) {
-          onScan(text);
-          setOpen(false);
-        } else {
-          setStatus(`Scanned "${text}" doesn't look like a valid VIN — keep trying`);
+      .decodeFromConstraints(
+        { video: { facingMode: { ideal: "environment" } } },
+        videoRef.current!,
+        (result) => {
+          if (cancelled || !result) return;
+          const text = result.getText().trim().toUpperCase();
+          if (VIN_PATTERN.test(text)) {
+            onScan(text);
+            setOpen(false);
+          } else {
+            setStatus(`Scanned "${text}" doesn't look like a valid VIN — keep trying`);
+          }
         }
-      })
+      )
       .then((controls) => {
         if (cancelled) {
           controls.stop();
@@ -43,11 +73,9 @@ export function VinScanner({ onScan }: { onScan: (vin: string) => void }) {
           controlsRef.current = controls;
         }
       })
-      .catch(() => {
+      .catch((err) => {
         if (!cancelled) {
-          setError(
-            "Couldn't access the camera. Check camera permissions and try again."
-          );
+          setError(cameraErrorMessage(err));
         }
       });
 
@@ -93,6 +121,7 @@ export function VinScanner({ onScan }: { onScan: (vin: string) => void }) {
                 <video
                   ref={videoRef}
                   className="aspect-video w-full rounded-md bg-neutral-900"
+                  autoPlay
                   muted
                   playsInline
                 />

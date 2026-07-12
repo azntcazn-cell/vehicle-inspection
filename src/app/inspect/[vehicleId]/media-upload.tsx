@@ -44,12 +44,14 @@ export function MediaUpload({
       <input type="hidden" name={`media-${itemId}`} value={JSON.stringify(media)} readOnly />
 
       <div className="flex items-center gap-3">
+        {/* sr-only, not display:none — iOS Safari ignores label taps that
+            target a display:none file input, so the camera never opens. */}
         <label className="inline-flex cursor-pointer items-center gap-1.5 text-xs font-medium text-neutral-500 hover:text-neutral-900">
           <input
             type="file"
             accept="image/*,video/*"
             capture="environment"
-            className="hidden"
+            className="sr-only"
             disabled={uploading}
             onChange={(e) => {
               handleFiles(e.target.files);
@@ -64,7 +66,7 @@ export function MediaUpload({
             type="file"
             accept="image/*,video/*"
             multiple
-            className="hidden"
+            className="sr-only"
             disabled={uploading}
             onChange={(e) => {
               handleFiles(e.target.files);
