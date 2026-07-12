@@ -13,10 +13,12 @@ export const authConfig = {
       const isLoggedIn = !!auth?.user;
       const isLoginPage = nextUrl.pathname.startsWith("/login");
 
+      // Middleware only sees the JWT, not live DB state, so it can't tell
+      // a deactivated user's still-valid-looking token from an active
+      // one. It must never redirect a request AWAY from /login — pages
+      // use requireSession() to send deactivated/stale sessions back to
+      // /login, and bouncing them off /login here would create a loop.
       if (!isLoggedIn && !isLoginPage) return false;
-      if (isLoggedIn && isLoginPage) {
-        return Response.redirect(new URL("/", nextUrl));
-      }
       return true;
     },
   },

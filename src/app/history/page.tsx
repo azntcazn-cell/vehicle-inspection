@@ -131,6 +131,7 @@ export default async function HistoryPage({
         <p className="text-sm text-neutral-500">No inspections found.</p>
       ) : (
         <div className="overflow-hidden rounded-lg border border-neutral-200 bg-white">
+          <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead className="border-b border-neutral-200 bg-neutral-50 text-neutral-500">
               <tr>
@@ -175,6 +176,7 @@ export default async function HistoryPage({
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </div>

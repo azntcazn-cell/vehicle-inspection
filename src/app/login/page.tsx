@@ -1,3 +1,8 @@
+import { eq } from "drizzle-orm";
+import { redirect } from "next/navigation";
+import { auth } from "@/auth";
+import { db } from "@/db";
+import { users } from "@/db/schema";
 import { LoginForm } from "./login-form";
 
 export default async function LoginPage({
@@ -6,6 +11,19 @@ export default async function LoginPage({
   searchParams: Promise<{ callbackUrl?: string }>;
 }) {
   const { callbackUrl } = await searchParams;
+
+  // Skip the form for an already-active session, but check the DB rather
+  // than trusting the JWT alone — a deactivated user's token still looks
+  // "logged in" and must be allowed to land here, not bounced away.
+  const session = await auth();
+  if (session?.user) {
+    const [user] = await db
+      .select({ active: users.active })
+      .from(users)
+      .where(eq(users.id, Number(session.user.id)))
+      .limit(1);
+    if (user?.active) redirect(callbackUrl || "/");
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-neutral-50 px-4">

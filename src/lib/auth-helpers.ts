@@ -1,9 +1,26 @@
+import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
+import { db } from "@/db";
+import { users } from "@/db/schema";
 
 export async function requireSession() {
   const session = await auth();
   if (!session?.user) redirect("/login");
+
+  // The JWT is only re-issued at login, so a deactivated user or a role
+  // change made by an admin wouldn't otherwise take effect until the
+  // affected user's session naturally expires. Re-check against the
+  // database on every call so revocation and role changes are immediate.
+  const [user] = await db
+    .select({ active: users.active, role: users.role })
+    .from(users)
+    .where(eq(users.id, Number(session.user.id)))
+    .limit(1);
+
+  if (!user || !user.active) redirect("/login");
+
+  session.user.role = user.role;
   return session;
 }
 

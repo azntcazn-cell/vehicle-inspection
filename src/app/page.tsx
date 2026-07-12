@@ -62,7 +62,7 @@ export default async function Home({
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold text-neutral-900">Dashboard</h1>
         {session.user.role === "admin" && (
           <Link
@@ -82,6 +82,7 @@ export default async function Home({
         </p>
       ) : (
         <div className="overflow-hidden rounded-lg border border-neutral-200 bg-white">
+          <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead className="border-b border-neutral-200 bg-neutral-50 text-neutral-500">
               <tr>
@@ -144,6 +145,7 @@ export default async function Home({
               })}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </div>

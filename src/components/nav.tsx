@@ -1,57 +1,22 @@
-import Link from "next/link";
+import { eq } from "drizzle-orm";
 import { auth } from "@/auth";
-import { SignOutButton } from "./sign-out-button";
+import { db } from "@/db";
+import { users } from "@/db/schema";
+import { NavBar } from "./nav-bar";
 
 export async function Nav() {
   const session = await auth();
   if (!session?.user) return null;
 
-  const isAdmin = session.user.role === "admin";
+  // A deactivated user's JWT still looks "logged in" until it naturally
+  // expires — check the DB so the nav doesn't show them as authenticated
+  // (matches the live check requireSession() does for actual page access).
+  const [user] = await db
+    .select({ active: users.active })
+    .from(users)
+    .where(eq(users.id, Number(session.user.id)))
+    .limit(1);
+  if (!user?.active) return null;
 
-  return (
-    <nav className="border-b border-neutral-200 bg-white">
-      <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
-        <div className="flex items-center gap-6">
-          <Link href="/" className="font-semibold text-neutral-900">
-            Vehicle Inspections
-          </Link>
-          <Link href="/" className="text-sm text-neutral-600 hover:text-neutral-900">
-            Dashboard
-          </Link>
-          <Link
-            href="/history"
-            className="text-sm text-neutral-600 hover:text-neutral-900"
-          >
-            History
-          </Link>
-          {isAdmin && (
-            <>
-              <Link
-                href="/vehicles"
-                className="text-sm text-neutral-600 hover:text-neutral-900"
-              >
-                Vehicles
-              </Link>
-              <Link
-                href="/admin/users"
-                className="text-sm text-neutral-600 hover:text-neutral-900"
-              >
-                Users
-              </Link>
-              <Link
-                href="/admin/checklist"
-                className="text-sm text-neutral-600 hover:text-neutral-900"
-              >
-                Checklist
-              </Link>
-            </>
-          )}
-        </div>
-        <div className="flex items-center gap-4">
-          <span className="text-sm text-neutral-500">{session.user.name}</span>
-          <SignOutButton />
-        </div>
-      </div>
-    </nav>
-  );
+  return <NavBar name={session.user.name ?? ""} isAdmin={session.user.role === "admin"} />;
 }
