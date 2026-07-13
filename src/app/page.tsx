@@ -89,7 +89,6 @@ export default async function Home({
                 <th className="px-4 py-3 font-medium">Vehicle</th>
                 <th className="px-4 py-3 font-medium">Last Inspection</th>
                 <th className="px-4 py-3 font-medium"></th>
-                <th className="px-4 py-3 font-medium"></th>
               </tr>
             </thead>
             <tbody>
@@ -123,22 +122,29 @@ export default async function Home({
                       )}
                     </td>
                     <td className="px-4 py-3">
-                      {last && (
+                      {last ? (
+                        <div className="flex items-center gap-3">
+                          <Link
+                            href={`/history/${last.id}`}
+                            className="whitespace-nowrap rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-neutral-700"
+                          >
+                            View Inspection
+                          </Link>
+                          <Link
+                            href={`/inspect/${vehicle.id}`}
+                            className="whitespace-nowrap text-sm text-neutral-500 hover:text-neutral-900"
+                          >
+                            New inspection
+                          </Link>
+                        </div>
+                      ) : (
                         <Link
-                          href={`/history/${last.id}`}
-                          className="text-sm text-neutral-500 hover:text-neutral-900"
+                          href={`/inspect/${vehicle.id}`}
+                          className="whitespace-nowrap rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-neutral-700"
                         >
-                          View last
+                          Start Inspection
                         </Link>
                       )}
-                    </td>
-                    <td className="px-4 py-3">
-                      <Link
-                        href={`/inspect/${vehicle.id}`}
-                        className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-neutral-700"
-                      >
-                        Start Inspection
-                      </Link>
                     </td>
                   </tr>
                 );
