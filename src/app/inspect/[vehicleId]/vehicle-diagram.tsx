@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { uploadInspectionMedia } from "../actions";
+import { uploadMediaFile } from "@/lib/upload-client";
 
 const COLORS = ["#dc2626", "#111827", "#2563eb"];
 const WIDTH = 736;
@@ -149,9 +149,7 @@ export function VehicleDiagram({
         out.toBlob((b) => (b ? resolve(b) : reject(new Error("toBlob failed"))), "image/png")
       );
       const file = new File([blob], "vehicle-diagram.png", { type: "image/png" });
-      const fd = new FormData();
-      fd.set("file", file);
-      const result = await uploadInspectionMedia(fd);
+      const result = await uploadMediaFile(file);
       setDiagramUrl(result.url);
     } catch {
       // leave diagramUrl unset — user can retry by drawing/labeling again

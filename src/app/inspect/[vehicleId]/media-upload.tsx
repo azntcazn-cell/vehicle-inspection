@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { uploadInspectionMedia } from "../actions";
+import { uploadMediaFile } from "@/lib/upload-client";
 
 type MediaItem = { url: string; type: "image" | "video" };
 
@@ -23,13 +23,15 @@ export function MediaUpload({
     try {
       const uploaded: MediaItem[] = [];
       for (const file of Array.from(files)) {
-        const fd = new FormData();
-        fd.set("file", file);
-        uploaded.push(await uploadInspectionMedia(fd));
+        uploaded.push(await uploadMediaFile(file));
       }
       setMedia((prev) => [...prev, ...uploaded]);
-    } catch {
-      setError("Upload failed. Please try again.");
+    } catch (err) {
+      setError(
+        err instanceof Error && err.message
+          ? `Upload failed: ${err.message}`
+          : "Upload failed. Please try again."
+      );
     } finally {
       setUploading(false);
     }
@@ -43,13 +45,13 @@ export function MediaUpload({
     <div className="mt-2">
       <input type="hidden" name={`media-${itemId}`} value={JSON.stringify(media)} readOnly />
 
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-2">
         {/* sr-only, not display:none — iOS Safari ignores label taps that
             target a display:none file input, so the camera never opens.
             Each capture input accepts a SINGLE media type: with a mixed
             accept list (image/*,video/*) mobile browsers ignore the
             capture hint and open the file picker instead of the camera. */}
-        <label className="inline-flex cursor-pointer items-center gap-1.5 text-xs font-medium text-neutral-500 hover:text-neutral-900">
+        <label className="inline-flex min-h-[40px] cursor-pointer items-center gap-1.5 rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 active:bg-neutral-100">
           <input
             type="file"
             accept="image/*"
@@ -64,7 +66,7 @@ export function MediaUpload({
           📷 Photo
         </label>
 
-        <label className="inline-flex cursor-pointer items-center gap-1.5 text-xs font-medium text-neutral-500 hover:text-neutral-900">
+        <label className="inline-flex min-h-[40px] cursor-pointer items-center gap-1.5 rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 active:bg-neutral-100">
           <input
             type="file"
             accept="video/*"
@@ -79,7 +81,7 @@ export function MediaUpload({
           🎥 Video
         </label>
 
-        <label className="inline-flex cursor-pointer items-center gap-1.5 text-xs font-medium text-neutral-500 hover:text-neutral-900">
+        <label className="inline-flex min-h-[40px] cursor-pointer items-center gap-1.5 rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 active:bg-neutral-100">
           <input
             type="file"
             accept="image/*,video/*"

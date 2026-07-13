@@ -46,15 +46,16 @@ export function InspectForm({
   return (
     <form action={formAction} className="flex flex-col gap-8">
       <div className="flex flex-col gap-1 max-w-xs">
-        <label htmlFor="odometer" className="text-sm font-medium text-neutral-700">
+        <label htmlFor="odometer" className="text-base font-medium text-neutral-700">
           Odometer
         </label>
         <input
           id="odometer"
           name="odometer"
           type="number"
+          inputMode="numeric"
           defaultValue={initialData?.odometer ?? ""}
-          className="rounded-md border border-neutral-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900"
+          className="rounded-md border border-neutral-300 px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-neutral-900"
         />
       </div>
 
@@ -68,7 +69,7 @@ export function InspectForm({
 
       {itemsByCategory.map(([category, items]) => (
         <fieldset key={category} className="flex flex-col gap-4">
-          <legend className="mb-2 text-sm font-semibold text-neutral-900">
+          <legend className="mb-2 text-lg font-semibold text-neutral-900">
             {category}
           </legend>
           {items.map((item) => {
@@ -78,14 +79,14 @@ export function InspectForm({
                 key={item.id}
                 className="rounded-lg border border-neutral-200 bg-white p-4"
               >
-                <p className="mb-2 text-sm font-medium text-neutral-900">
+                <p className="mb-3 text-base font-medium text-neutral-900">
                   {item.label}
                 </p>
-                <div className="flex gap-4 mb-2">
+                <div className="mb-3 flex flex-wrap gap-2">
                   {(["pass", "fail", "na"] as const).map((value, i) => (
                     <label
                       key={value}
-                      className="flex items-center gap-1.5 text-sm text-neutral-600"
+                      className="flex min-h-[44px] flex-1 cursor-pointer items-center justify-center gap-2 rounded-md border border-neutral-300 px-3 py-2 text-base text-neutral-700 has-[:checked]:border-neutral-900 has-[:checked]:bg-neutral-900 has-[:checked]:font-medium has-[:checked]:text-white"
                     >
                       <input
                         type="radio"
@@ -93,6 +94,7 @@ export function InspectForm({
                         value={value}
                         required={i === 0}
                         defaultChecked={initialItem?.status === value}
+                        className="sr-only"
                       />
                       {value === "pass" ? "Pass" : value === "fail" ? "Fail" : "N/A"}
                     </label>
@@ -103,7 +105,7 @@ export function InspectForm({
                   name={`notes-${item.id}`}
                   placeholder="Notes (optional)"
                   defaultValue={initialItem?.notes ?? ""}
-                  className="w-full rounded-md border border-neutral-200 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900"
+                  className="w-full rounded-md border border-neutral-300 px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-neutral-900"
                 />
                 <MediaUpload itemId={item.id} initialMedia={initialItem?.media} />
               </div>
