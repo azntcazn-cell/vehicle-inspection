@@ -8,11 +8,11 @@ export function VehicleSearch({ q, action }: { q?: string; action: string }) {
         name="q"
         defaultValue={q ?? ""}
         placeholder="Search VIN, make, model, plate…"
-        className="w-full max-w-xs rounded-md border border-neutral-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900"
+        className="w-full rounded-md border border-neutral-300 px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-neutral-900 sm:max-w-xs"
       />
       <button
         type="submit"
-        className="rounded-md border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-neutral-700 transition hover:bg-neutral-100"
+        className="rounded-md border border-neutral-300 bg-white px-4 py-2 text-base font-medium text-neutral-700 transition hover:bg-neutral-100"
       >
         Search
       </button>

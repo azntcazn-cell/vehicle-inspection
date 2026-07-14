@@ -79,7 +79,7 @@ export function VehicleForm({
           required
           maxLength={17}
           defaultValue={vehicle?.vin ?? ""}
-          className="rounded-md border border-neutral-300 px-3 py-2 text-sm uppercase focus:outline-none focus:ring-2 focus:ring-neutral-900"
+          className="rounded-md border border-neutral-300 px-3 py-2 text-base uppercase focus:outline-none focus:ring-2 focus:ring-neutral-900"
         />
         {decodeStatus && (
           <p
@@ -162,7 +162,7 @@ function Field({
         type={type}
         defaultValue={defaultValue ?? ""}
         required={required}
-        className="rounded-md border border-neutral-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900"
+        className="rounded-md border border-neutral-300 px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-neutral-900"
       />
     </div>
   );

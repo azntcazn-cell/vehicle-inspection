@@ -73,7 +73,7 @@ export function NavBar({ name, isAdmin }: { name: string; isAdmin: boolean }) {
               key={link.href}
               href={link.href}
               onClick={() => setOpen(false)}
-              className="rounded-md px-2 py-2 text-sm text-neutral-700 hover:bg-neutral-100"
+              className="rounded-md px-2 py-2.5 text-base text-neutral-700 hover:bg-neutral-100"
             >
               {link.label}
             </Link>

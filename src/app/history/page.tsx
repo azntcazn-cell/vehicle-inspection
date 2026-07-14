@@ -104,7 +104,7 @@ export default async function HistoryPage({
             type="date"
             name="from"
             defaultValue={filters.from}
-            className="rounded-md border border-neutral-300 px-3 py-2 text-sm"
+            className="rounded-md border border-neutral-300 px-3 py-2 text-base"
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -113,7 +113,7 @@ export default async function HistoryPage({
             type="date"
             name="to"
             defaultValue={filters.to}
-            className="rounded-md border border-neutral-300 px-3 py-2 text-sm"
+            className="rounded-md border border-neutral-300 px-3 py-2 text-base"
           />
         </div>
         <button
@@ -130,7 +130,37 @@ export default async function HistoryPage({
       {rows.length === 0 ? (
         <p className="text-sm text-neutral-500">No inspections found.</p>
       ) : (
-        <div className="overflow-hidden rounded-lg border border-neutral-200 bg-white">
+        <>
+        {/* Phone: card list */}
+        <div className="flex flex-col gap-3 sm:hidden">
+          {rows.map((row) => (
+            <Link
+              key={row.id}
+              href={`/history/${row.id}`}
+              className="rounded-lg border border-neutral-200 bg-white p-4 active:bg-neutral-50"
+            >
+              <p className="break-all text-base font-semibold text-neutral-900">
+                {row.vehicleVin}
+              </p>
+              <p className="mt-1 text-sm text-neutral-600">
+                {row.inspectorName} · {new Date(row.startedAt).toLocaleDateString()}
+              </p>
+              <p className="mt-2 flex items-center gap-2 text-sm">
+                <span className="text-neutral-600">
+                  {row.status === "completed" ? "Completed" : "In progress"}
+                </span>
+                {failSet.has(row.id) && (
+                  <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
+                    Failed items
+                  </span>
+                )}
+              </p>
+            </Link>
+          ))}
+        </div>
+
+        {/* Desktop: table */}
+        <div className="hidden overflow-hidden rounded-lg border border-neutral-200 bg-white sm:block">
           <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead className="border-b border-neutral-200 bg-neutral-50 text-neutral-500">
@@ -178,6 +208,7 @@ export default async function HistoryPage({
           </table>
           </div>
         </div>
+        </>
       )}
     </div>
   );
@@ -200,7 +231,7 @@ function FilterSelect({
       <select
         name={name}
         defaultValue={value ?? ""}
-        className="rounded-md border border-neutral-300 px-3 py-2 text-sm"
+        className="rounded-md border border-neutral-300 px-3 py-2 text-base"
       >
         <option value="">All</option>
         {options.map((o) => (

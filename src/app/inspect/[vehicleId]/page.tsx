@@ -42,10 +42,12 @@ export default async function InspectPage({
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
-      <h1 className="text-2xl font-semibold text-neutral-900">
-        Inspect {vehicle.vin}
+      <h1 className="text-xl font-semibold text-neutral-900 sm:text-2xl">
+        Inspect{" "}
+        {[vehicle.year, vehicle.make, vehicle.model].filter(Boolean).join(" ") ||
+          "Vehicle"}
       </h1>
-      <p className="mb-6 text-sm text-neutral-500">{template.name}</p>
+      <p className="mb-6 break-all text-sm text-neutral-500">{vehicle.vin}</p>
       <InspectForm action={boundSubmit} itemsByCategory={itemsByCategory} />
     </div>
   );

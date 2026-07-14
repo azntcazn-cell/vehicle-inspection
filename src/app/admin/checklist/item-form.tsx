@@ -30,7 +30,7 @@ export function ItemForm({
           name="category"
           required
           defaultValue={defaultCategory}
-          className="rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          className="rounded-md border border-neutral-300 px-3 py-2 text-base"
         />
       </div>
       <div className="flex flex-col gap-1">
@@ -42,7 +42,7 @@ export function ItemForm({
           name="label"
           required
           defaultValue={defaultLabel}
-          className="min-w-64 rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          className="min-w-64 rounded-md border border-neutral-300 px-3 py-2 text-base"
         />
       </div>
       <button

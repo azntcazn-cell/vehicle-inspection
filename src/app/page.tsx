@@ -81,78 +81,127 @@ export default async function Home({
           {q ? "No vehicles match your search." : "No active vehicles."}
         </p>
       ) : (
-        <div className="overflow-hidden rounded-lg border border-neutral-200 bg-white">
-          <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="border-b border-neutral-200 bg-neutral-50 text-neutral-500">
-              <tr>
-                <th className="px-4 py-3 font-medium">Vehicle</th>
-                <th className="px-4 py-3 font-medium">Last Inspection</th>
-                <th className="px-4 py-3 font-medium"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {activeVehicles.map((vehicle) => {
-                const last = lastInspectionByVehicle.get(vehicle.id);
-                const hasFail = last ? failSet.has(last.id) : false;
-                return (
-                  <tr key={vehicle.id} className="border-b border-neutral-100 last:border-0">
-                    <td className="px-4 py-3">
-                      <p className="font-medium text-neutral-900">
-                        {[vehicle.year, vehicle.make, vehicle.model]
-                          .filter(Boolean)
-                          .join(" ") || "Vehicle"}
-                      </p>
-                      <p className="text-xs text-neutral-500">{vehicle.vin}</p>
-                    </td>
-                    <td className="px-4 py-3">
-                      {last ? (
-                        <div className="flex items-center gap-2">
-                          <span className="text-neutral-600">
-                            {new Date(last.startedAt).toLocaleDateString()}
+        <>
+          {/* Phone: card list */}
+          <div className="flex flex-col gap-3 sm:hidden">
+            {activeVehicles.map((vehicle) => {
+              const last = lastInspectionByVehicle.get(vehicle.id);
+              const hasFail = last ? failSet.has(last.id) : false;
+              return (
+                <div
+                  key={vehicle.id}
+                  className="rounded-lg border border-neutral-200 bg-white p-4"
+                >
+                  <p className="text-lg font-semibold text-neutral-900">
+                    {[vehicle.year, vehicle.make, vehicle.model]
+                      .filter(Boolean)
+                      .join(" ") || "Vehicle"}
+                  </p>
+                  <p className="break-all text-sm text-neutral-500">{vehicle.vin}</p>
+                  <p className="mt-2 flex items-center gap-2 text-sm">
+                    {last ? (
+                      <>
+                        <span className="text-neutral-600">
+                          Inspected {new Date(last.startedAt).toLocaleDateString()}
+                        </span>
+                        {hasFail && (
+                          <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
+                            Failed items
                           </span>
-                          {hasFail && (
-                            <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
-                              Failed items
+                        )}
+                      </>
+                    ) : (
+                      <span className="text-neutral-400">Never inspected</span>
+                    )}
+                  </p>
+                  <div className="mt-3">
+                    {last ? (
+                      <Link
+                        href={`/history/${last.id}`}
+                        className="block w-full rounded-md bg-neutral-900 px-4 py-3 text-center text-base font-medium text-white transition hover:bg-neutral-700"
+                      >
+                        View Inspection
+                      </Link>
+                    ) : (
+                      <Link
+                        href={`/inspect/${vehicle.id}`}
+                        className="block w-full rounded-md bg-neutral-900 px-4 py-3 text-center text-base font-medium text-white transition hover:bg-neutral-700"
+                      >
+                        Start Inspection
+                      </Link>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Desktop: table */}
+          <div className="hidden overflow-hidden rounded-lg border border-neutral-200 bg-white sm:block">
+            <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead className="border-b border-neutral-200 bg-neutral-50 text-neutral-500">
+                <tr>
+                  <th className="px-4 py-3 font-medium">Vehicle</th>
+                  <th className="px-4 py-3 font-medium">Last Inspection</th>
+                  <th className="px-4 py-3 font-medium"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {activeVehicles.map((vehicle) => {
+                  const last = lastInspectionByVehicle.get(vehicle.id);
+                  const hasFail = last ? failSet.has(last.id) : false;
+                  return (
+                    <tr key={vehicle.id} className="border-b border-neutral-100 last:border-0">
+                      <td className="px-4 py-3">
+                        <p className="font-medium text-neutral-900">
+                          {[vehicle.year, vehicle.make, vehicle.model]
+                            .filter(Boolean)
+                            .join(" ") || "Vehicle"}
+                        </p>
+                        <p className="text-xs text-neutral-500">{vehicle.vin}</p>
+                      </td>
+                      <td className="px-4 py-3">
+                        {last ? (
+                          <div className="flex items-center gap-2">
+                            <span className="text-neutral-600">
+                              {new Date(last.startedAt).toLocaleDateString()}
                             </span>
-                          )}
-                        </div>
-                      ) : (
-                        <span className="text-neutral-400">Never inspected</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3">
-                      {last ? (
-                        <div className="flex items-center gap-3">
+                            {hasFail && (
+                              <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
+                                Failed items
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-neutral-400">Never inspected</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        {last ? (
                           <Link
                             href={`/history/${last.id}`}
                             className="whitespace-nowrap rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-neutral-700"
                           >
                             View Inspection
                           </Link>
+                        ) : (
                           <Link
                             href={`/inspect/${vehicle.id}`}
-                            className="whitespace-nowrap text-sm text-neutral-500 hover:text-neutral-900"
+                            className="whitespace-nowrap rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-neutral-700"
                           >
-                            New inspection
+                            Start Inspection
                           </Link>
-                        </div>
-                      ) : (
-                        <Link
-                          href={`/inspect/${vehicle.id}`}
-                          className="whitespace-nowrap rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-neutral-700"
-                        >
-                          Start Inspection
-                        </Link>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+            </div>
           </div>
-        </div>
+        </>
       )}
     </div>
   );

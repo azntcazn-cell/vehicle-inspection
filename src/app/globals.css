@@ -17,3 +17,11 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Larger base font on phones — scales every rem-based Tailwind size up,
+   and keeps inputs at ≥16px so iOS Safari doesn't auto-zoom on focus. */
+@media (max-width: 640px) {
+  html {
+    font-size: 17px;
+  }
+}

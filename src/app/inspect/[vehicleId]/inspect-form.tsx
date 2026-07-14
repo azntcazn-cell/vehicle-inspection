@@ -115,7 +115,7 @@ export function InspectForm({
       ))}
 
       <div className="flex flex-col gap-1">
-        <label htmlFor="notes" className="text-sm font-medium text-neutral-700">
+        <label htmlFor="notes" className="text-base font-medium text-neutral-700">
           Overall notes
         </label>
         <textarea
@@ -123,7 +123,7 @@ export function InspectForm({
           name="notes"
           rows={3}
           defaultValue={initialData?.notes ?? ""}
-          className="rounded-md border border-neutral-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900"
+          className="rounded-md border border-neutral-300 px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-neutral-900"
         />
       </div>
 
@@ -136,7 +136,7 @@ export function InspectForm({
       <button
         type="submit"
         disabled={pending}
-        className="self-start rounded-md bg-neutral-900 px-6 py-2 text-sm font-medium text-white transition hover:bg-neutral-700 disabled:opacity-50"
+        className="w-full rounded-md bg-neutral-900 px-6 py-3 text-base font-medium text-white transition hover:bg-neutral-700 disabled:opacity-50 sm:w-auto sm:self-start"
       >
         {pending ? "Saving…" : submitLabel}
       </button>
