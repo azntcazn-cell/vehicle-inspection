@@ -22,6 +22,6 @@ body {
    and keeps inputs at ≥16px so iOS Safari doesn't auto-zoom on focus. */
 @media (max-width: 640px) {
   html {
-    font-size: 17px;
+    font-size: 18px;
   }
 }

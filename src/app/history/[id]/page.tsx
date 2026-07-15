@@ -34,6 +34,9 @@ export default async function InspectionDetailPage({
       updatedAt: inspections.updatedAt,
       inspectorId: inspections.inspectorId,
       vehicleVin: vehicles.vin,
+      vehicleYear: vehicles.year,
+      vehicleMake: vehicles.make,
+      vehicleModel: vehicles.model,
       inspectorName: users.name,
     })
     .from(inspections)
@@ -97,55 +100,68 @@ export default async function InspectionDetailPage({
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
-      <div className="flex items-start justify-between gap-4">
-        <h1 className="text-2xl font-semibold text-neutral-900">
-          {inspection.vehicleVin}
-        </h1>
+      <h1 className="text-xl font-semibold text-neutral-900 sm:text-2xl">
+        {[inspection.vehicleYear, inspection.vehicleMake, inspection.vehicleModel]
+          .filter(Boolean)
+          .join(" ") || "Vehicle"}
+      </h1>
+      <p className="break-all text-sm text-neutral-500">{inspection.vehicleVin}</p>
+      <p className="mt-2 text-sm text-neutral-500">
+        Inspected by {inspection.inspectorName} on{" "}
+        {new Date(inspection.startedAt).toLocaleString()}
+      </p>
+      {inspection.updatedAt && (
+        <p className="mt-1 text-sm text-neutral-500">
+          Last edited {new Date(inspection.updatedAt).toLocaleString()}
+        </p>
+      )}
+      {inspection.odometer != null && (
+        <p className="mt-1 text-sm text-neutral-500">
+          Odometer: {inspection.odometer}
+        </p>
+      )}
+      {failCount > 0 && (
+        <p className="mt-3 inline-block rounded-full bg-red-100 px-2.5 py-1 text-sm font-medium text-red-700">
+          {failCount} failed item{failCount > 1 ? "s" : ""}
+        </p>
+      )}
+
+      <div className="mt-4 flex flex-wrap gap-2">
+        <a
+          href={`/history/${inspection.id}/pdf`}
+          className="flex-1 rounded-md bg-neutral-900 px-4 py-2.5 text-center text-base font-medium text-white transition hover:bg-neutral-700 sm:flex-none"
+        >
+          Download PDF
+        </a>
         {canEdit && (
           <Link
             href={`/history/${inspection.id}/edit`}
-            className="shrink-0 rounded-md border border-neutral-300 px-3 py-1.5 text-sm font-medium text-neutral-700 transition hover:bg-neutral-100"
+            className="flex-1 rounded-md border border-neutral-300 bg-white px-4 py-2.5 text-center text-base font-medium text-neutral-700 transition hover:bg-neutral-100 sm:flex-none"
           >
             Edit
           </Link>
         )}
       </div>
-      <p className="mb-1 text-sm text-neutral-500">
-        Inspected by {inspection.inspectorName} on{" "}
-        {new Date(inspection.startedAt).toLocaleString()}
-      </p>
-      {inspection.updatedAt && (
-        <p className="mb-1 text-sm text-neutral-500">
-          Last edited {new Date(inspection.updatedAt).toLocaleString()}
-        </p>
-      )}
-      {inspection.odometer != null && (
-        <p className="mb-1 text-sm text-neutral-500">
-          Odometer: {inspection.odometer}
-        </p>
-      )}
-      {failCount > 0 && (
-        <p className="mb-4 inline-block rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
-          {failCount} failed item{failCount > 1 ? "s" : ""}
-        </p>
-      )}
 
       {inspection.diagramUrl && (
-        <div className="mt-4">
-          <h2 className="mb-2 text-sm font-semibold text-neutral-900">Vehicle Diagram</h2>
+        <div className="mt-6">
+          <h2 className="mb-2 text-lg font-semibold text-neutral-900">
+            Vehicle Diagram
+          </h2>
           <a href={inspection.diagramUrl} target="_blank" rel="noopener noreferrer">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={inspection.diagramUrl}
               alt="Vehicle diagram with marked damage"
-              className="w-full max-w-xs rounded-lg border border-neutral-200"
+              className="w-full rounded-lg border border-neutral-200 sm:max-w-md"
             />
           </a>
+          <p className="mt-1 text-xs text-neutral-400">Tap the diagram to open full size</p>
           {diagramLabels.length > 0 && (
-            <ol className="mt-2 flex flex-col gap-1 text-sm text-neutral-600">
+            <ol className="mt-3 flex flex-col gap-2 text-base text-neutral-700">
               {diagramLabels.map((label, i) => (
                 <li key={i} className="flex items-center gap-2">
-                  <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-amber-500 text-[10px] font-bold text-white">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-500 text-sm font-bold text-white">
                     {i + 1}
                   </span>
                   {label.text}
@@ -159,12 +175,12 @@ export default async function InspectionDetailPage({
       <div className="mt-6 flex flex-col gap-6">
         {resultsByCategory.map(([category, items]) => (
           <div key={category}>
-            <h2 className="mb-2 text-sm font-semibold text-neutral-900">{category}</h2>
+            <h2 className="mb-2 text-lg font-semibold text-neutral-900">{category}</h2>
             <div className="overflow-hidden rounded-lg border border-neutral-200 bg-white">
               {items.map((item, i) => (
                 <div
                   key={i}
-                  className={`px-4 py-3 text-sm ${
+                  className={`px-4 py-3.5 text-base ${
                     i !== items.length - 1 ? "border-b border-neutral-100" : ""
                   } ${item.status === "fail" ? "bg-red-50" : ""}`}
                 >
@@ -172,7 +188,7 @@ export default async function InspectionDetailPage({
                     <div>
                       <p className="text-neutral-900">{item.label}</p>
                       {item.notes && (
-                        <p className="mt-1 text-xs text-neutral-500">{item.notes}</p>
+                        <p className="mt-1 text-sm text-neutral-500">{item.notes}</p>
                       )}
                     </div>
                     <StatusBadge status={item.status} />
@@ -191,13 +207,15 @@ export default async function InspectionDetailPage({
                             <img
                               src={m.url}
                               alt=""
-                              className="h-20 w-20 rounded-md border border-neutral-200 object-cover"
+                              className="h-24 w-24 rounded-md border border-neutral-200 object-cover"
                             />
                           ) : (
                             <video
                               src={m.url}
                               muted
-                              className="h-20 w-20 rounded-md border border-neutral-200 object-cover"
+                              playsInline
+                              controls
+                              className="h-24 w-24 rounded-md border border-neutral-200 object-cover"
                             />
                           )}
                         </a>
@@ -213,8 +231,8 @@ export default async function InspectionDetailPage({
 
       {inspection.notes && (
         <div className="mt-6">
-          <h2 className="mb-2 text-sm font-semibold text-neutral-900">Overall notes</h2>
-          <p className="text-sm text-neutral-600">{inspection.notes}</p>
+          <h2 className="mb-2 text-lg font-semibold text-neutral-900">Overall notes</h2>
+          <p className="text-base text-neutral-600">{inspection.notes}</p>
         </div>
       )}
     </div>
@@ -229,7 +247,7 @@ function StatusBadge({ status }: { status: "pass" | "fail" | "na" }) {
   };
   const label = { pass: "Pass", fail: "Fail", na: "N/A" };
   return (
-    <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${styles[status]}`}>
+    <span className={`shrink-0 rounded-full px-2.5 py-1 text-sm font-medium ${styles[status]}`}>
       {label[status]}
     </span>
   );
