@@ -13,9 +13,11 @@ type Mode = "draw" | "label";
 export function VehicleDiagram({
   initialImageUrl,
   initialLabels,
+  onSavingChange,
 }: {
   initialImageUrl?: string;
   initialLabels?: { x: number; y: number; text: string }[];
+  onSavingChange?: (saving: boolean) => void;
 } = {}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawing = useRef(false);
@@ -32,6 +34,7 @@ export function VehicleDiagram({
   const [editingId, setEditingId] = useState<number | null>(null);
   const [diagramUrl, setDiagramUrl] = useState(initialImageUrl ?? "");
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState(false);
 
   function getPos(clientX: number, clientY: number) {
     const canvas = canvasRef.current!;
@@ -109,6 +112,8 @@ export function VehicleDiagram({
 
   async function saveDiagram() {
     setSaving(true);
+    setSaveError(false);
+    onSavingChange?.(true);
     try {
       const canvas = canvasRef.current!;
 
@@ -152,9 +157,10 @@ export function VehicleDiagram({
       const result = await uploadMediaFile(file);
       setDiagramUrl(result.url);
     } catch {
-      // leave diagramUrl unset — user can retry by drawing/labeling again
+      setSaveError(true);
     } finally {
       setSaving(false);
+      onSavingChange?.(false);
     }
   }
 
@@ -236,12 +242,13 @@ export function VehicleDiagram({
           ref={canvasRef}
           width={WIDTH}
           height={HEIGHT}
-          className="absolute inset-0 h-full w-full"
+          className="absolute inset-0 h-full w-full touch-none"
           style={{ cursor: mode === "draw" ? "crosshair" : "copy" }}
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
           onPointerLeave={handlePointerUp}
+          onPointerCancel={handlePointerUp}
         />
 
         <div className="pointer-events-none absolute inset-0">
@@ -318,9 +325,26 @@ export function VehicleDiagram({
         value={JSON.stringify(namedLabels.map(({ x, y, text }) => ({ x, y, text })))}
         readOnly
       />
-      <p className="text-center text-xs text-neutral-400">
-        {saving ? "Saving diagram…" : hasMarks || namedLabels.length > 0 ? "Diagram saved." : ""}
-      </p>
+      {saveError ? (
+        <p className="text-center text-sm text-red-600">
+          Couldn&apos;t save the diagram — check your connection.{" "}
+          <button
+            type="button"
+            onClick={saveDiagram}
+            className="font-medium underline"
+          >
+            Retry
+          </button>
+        </p>
+      ) : (
+        <p className="text-center text-sm text-neutral-400">
+          {saving
+            ? "Saving diagram…"
+            : (hasMarks || namedLabels.length > 0) && diagramUrl
+              ? "Diagram saved."
+              : ""}
+        </p>
+      )}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import type { InspectionFormState } from "../actions";
 import { MediaUpload } from "./media-upload";
 import { VehicleDiagram } from "./vehicle-diagram";
@@ -42,6 +42,7 @@ export function InspectForm({
   submitLabel?: string;
 }) {
   const [state, formAction, pending] = useActionState(action, undefined);
+  const [diagramSaving, setDiagramSaving] = useState(false);
 
   return (
     <form action={formAction} className="flex flex-col gap-8">
@@ -64,6 +65,7 @@ export function InspectForm({
         <VehicleDiagram
           initialImageUrl={initialData?.diagramUrl ?? undefined}
           initialLabels={initialData?.diagramLabels}
+          onSavingChange={setDiagramSaving}
         />
       </div>
 
@@ -135,10 +137,10 @@ export function InspectForm({
 
       <button
         type="submit"
-        disabled={pending}
+        disabled={pending || diagramSaving}
         className="w-full rounded-md bg-neutral-900 px-6 py-3 text-base font-medium text-white transition hover:bg-neutral-700 disabled:opacity-50 sm:w-auto sm:self-start"
       >
-        {pending ? "Saving…" : submitLabel}
+        {diagramSaving ? "Saving diagram…" : pending ? "Saving…" : submitLabel}
       </button>
     </form>
   );

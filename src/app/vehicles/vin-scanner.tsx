@@ -26,7 +26,9 @@ function cameraErrorMessage(err: unknown): string {
 export function VinScanner({ onScan }: { onScan: (vin: string) => void }) {
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [status, setStatus] = useState("Point the camera at the VIN barcode");
+  const [status, setStatus] = useState(
+    "Point the camera at the VIN barcode (usually on the driver-door sticker). Hold steady about 6 inches away."
+  );
   const videoRef = useRef<HTMLVideoElement>(null);
   const controlsRef = useRef<IScannerControls | null>(null);
 
@@ -42,22 +44,40 @@ export function VinScanner({ onScan }: { onScan: (vin: string) => void }) {
 
     let cancelled = false;
     const hints = new Map();
+    // VIN door-jamb stickers most commonly carry Code 39, Data Matrix, or
+    // PDF417 barcodes (QR is rare). TRY_HARDER improves detection of the
+    // small, dense codes typical on VIN labels.
     hints.set(DecodeHintType.POSSIBLE_FORMATS, [
       BarcodeFormat.CODE_39,
       BarcodeFormat.CODE_128,
+      BarcodeFormat.DATA_MATRIX,
+      BarcodeFormat.PDF_417,
       BarcodeFormat.QR_CODE,
     ]);
+    hints.set(DecodeHintType.TRY_HARDER, true);
     const reader = new BrowserMultiFormatReader(hints);
 
     // Ask for the rear camera explicitly — the default video device on
-    // phones is often the front camera, which can't be aimed at a VIN.
+    // phones is often the front camera — and a high resolution, since VIN
+    // barcodes are too dense to resolve at the 640x480 default.
     reader
       .decodeFromConstraints(
-        { video: { facingMode: { ideal: "environment" } } },
+        {
+          video: {
+            facingMode: { ideal: "environment" },
+            width: { ideal: 1920 },
+            height: { ideal: 1080 },
+          },
+        },
         videoRef.current!,
         (result) => {
           if (cancelled || !result) return;
-          const text = result.getText().trim().toUpperCase();
+          let text = result.getText().trim().toUpperCase();
+          // Code 39 VIN labels often encode an extra leading "I"
+          // (import character) — strip it.
+          if (text.length === 18 && text.startsWith("I")) {
+            text = text.slice(1);
+          }
           if (VIN_PATTERN.test(text)) {
             onScan(text);
             setOpen(false);
@@ -92,7 +112,9 @@ export function VinScanner({ onScan }: { onScan: (vin: string) => void }) {
         type="button"
         onClick={() => {
           setError(null);
-          setStatus("Point the camera at the VIN barcode");
+          setStatus(
+            "Point the camera at the VIN barcode (usually on the driver-door sticker). Hold steady about 6 inches away."
+          );
           setOpen(true);
         }}
         className="text-sm text-neutral-500 hover:text-neutral-900"

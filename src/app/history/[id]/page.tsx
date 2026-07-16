@@ -143,20 +143,30 @@ export default async function InspectionDetailPage({
         )}
       </div>
 
-      {inspection.diagramUrl && (
+      {/* Always show a diagram — fall back to the blank template when the
+          inspection was completed without any marks. */}
+      {(
         <div className="mt-6">
           <h2 className="mb-2 text-lg font-semibold text-neutral-900">
             Vehicle Diagram
           </h2>
-          <a href={inspection.diagramUrl} target="_blank" rel="noopener noreferrer">
+          <a
+            href={inspection.diagramUrl ?? "/vehicle-diagram.jpg"}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={inspection.diagramUrl}
+              src={inspection.diagramUrl ?? "/vehicle-diagram.jpg"}
               alt="Vehicle diagram with marked damage"
               className="w-full rounded-lg border border-neutral-200 sm:max-w-md"
             />
           </a>
-          <p className="mt-1 text-xs text-neutral-400">Tap the diagram to open full size</p>
+          <p className="mt-1 text-xs text-neutral-400">
+            {inspection.diagramUrl
+              ? "Tap the diagram to open full size"
+              : "No damage was marked on this inspection"}
+          </p>
           {diagramLabels.length > 0 && (
             <ol className="mt-3 flex flex-col gap-2 text-base text-neutral-700">
               {diagramLabels.map((label, i) => (

@@ -148,9 +148,11 @@ export async function GET(
     });
   }
 
-  const diagram = inspection.diagramUrl
-    ? await fetchImage(absolutize(inspection.diagramUrl))
-    : null;
+  // Fall back to the blank template so the report always includes a diagram.
+  const diagram =
+    (inspection.diagramUrl
+      ? await fetchImage(absolutize(inspection.diagramUrl))
+      : null) ?? (await fetchImage(absolutize("/vehicle-diagram.jpg")));
 
   const data: InspectionPdfData = {
     vehicleTitle:
