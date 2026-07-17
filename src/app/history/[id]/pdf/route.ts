@@ -67,6 +67,7 @@ export async function GET(
       make: vehicles.make,
       model: vehicles.model,
       plate: vehicles.plate,
+      buyerName: vehicles.buyerName,
       inspectorName: users.name,
     })
     .from(inspections)
@@ -161,6 +162,7 @@ export async function GET(
         .join(" ") || "Vehicle",
     vin: inspection.vin,
     plate: inspection.plate,
+    buyerName: inspection.buyerName,
     odometer: inspection.odometer,
     inspectorName: inspection.inspectorName,
     startedAt: inspection.startedAt,

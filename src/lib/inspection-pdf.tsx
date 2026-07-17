@@ -13,6 +13,7 @@ export type InspectionPdfData = {
   vehicleTitle: string;
   vin: string;
   plate: string | null;
+  buyerName: string | null;
   odometer: number | null;
   inspectorName: string;
   startedAt: string;
@@ -169,6 +170,7 @@ export function InspectionPdf({ data }: { data: InspectionPdfData }) {
           <Meta label="Vehicle" value={data.vehicleTitle} />
           <Meta label="VIN" value={data.vin} />
           <Meta label="Plate" value={data.plate ?? "—"} />
+          <Meta label="Buyer" value={data.buyerName ?? "—"} />
           <Meta
             label="Odometer"
             value={data.odometer != null ? String(data.odometer) : "—"}

@@ -1,153 +1,123 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { BrowserMultiFormatReader, type IScannerControls } from "@zxing/browser";
-import { BarcodeFormat, DecodeHintType } from "@zxing/library";
+import { useState } from "react";
 
-const VIN_PATTERN = /^[A-HJ-NPR-Z0-9]{17}$/;
+const VIN_PATTERN = /[A-HJ-NPR-Z0-9]{17}/;
 
-function cameraErrorMessage(err: unknown): string {
-  const name = err instanceof Error ? err.name : "";
-  switch (name) {
-    case "NotAllowedError":
-    case "PermissionDeniedError":
-      return "Camera permission was denied. Allow camera access for this site in your browser settings, then try again.";
-    case "NotFoundError":
-    case "OverconstrainedError":
-      return "No camera was found on this device.";
-    case "NotReadableError":
-    case "TrackStartError":
-      return "The camera is in use by another app. Close it and try again.";
-    default:
-      return "Couldn't access the camera. Check camera permissions and try again.";
+// Extract a plausible VIN from decoded barcode text. Door-jamb Code 39
+// labels often prefix the VIN with an "I" (import character), and 2D codes
+// sometimes wrap the VIN in additional data.
+function extractVin(raw: string): string | null {
+  const text = raw.trim().toUpperCase();
+  const candidates = [text];
+  if (text.length === 18 && text.startsWith("I")) candidates.push(text.slice(1));
+  for (const candidate of candidates) {
+    if (/^[A-HJ-NPR-Z0-9]{17}$/.test(candidate)) return candidate;
   }
+  const embedded = text.match(VIN_PATTERN);
+  return embedded ? embedded[0] : null;
+}
+
+// Downscale huge camera stills before decoding — dense VIN barcodes stay
+// resolvable at this size when photographed close up, and it keeps wasm
+// memory/decode time reasonable on phones.
+const MAX_DIMENSION = 2400;
+
+async function fileToImageData(file: File): Promise<ImageData> {
+  const bitmap = await createImageBitmap(file);
+  const scale = Math.min(1, MAX_DIMENSION / Math.max(bitmap.width, bitmap.height));
+  const width = Math.round(bitmap.width * scale);
+  const height = Math.round(bitmap.height * scale);
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d")!;
+  ctx.drawImage(bitmap, 0, 0, width, height);
+  bitmap.close();
+  return ctx.getImageData(0, 0, width, height);
+}
+
+async function decodeVinFromPhoto(file: File): Promise<string | null> {
+  const { prepareZXingModule, readBarcodes } = await import("zxing-wasm/reader");
+  // Serve the wasm binary ourselves instead of zxing-wasm's default CDN.
+  prepareZXingModule({
+    overrides: {
+      locateFile: (path: string, prefix: string) =>
+        path.endsWith(".wasm") ? "/zxing_reader.wasm" : prefix + path,
+    },
+  });
+
+  const imageData = await fileToImageData(file);
+  const results = await readBarcodes(imageData, {
+    formats: ["Code39", "Code128", "DataMatrix", "PDF417", "QRCode", "Aztec", "ITF"],
+    tryHarder: true,
+    maxNumberOfSymbols: 4,
+  });
+
+  for (const result of results) {
+    const vin = extractVin(result.text);
+    if (vin) return vin;
+  }
+  return null;
 }
 
 export function VinScanner({ onScan }: { onScan: (vin: string) => void }) {
-  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [status, setStatus] = useState(
-    "Point the camera at the VIN barcode (usually on the driver-door sticker). Hold steady about 6 inches away."
-  );
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const controlsRef = useRef<IScannerControls | null>(null);
 
-  useEffect(() => {
-    if (!open) return;
-
-    if (!navigator.mediaDevices?.getUserMedia) {
-      setError(
-        "This browser doesn't support camera access (it requires HTTPS)."
-      );
-      return;
+  async function handlePhoto(file: File | undefined) {
+    if (!file) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const vin = await decodeVinFromPhoto(file);
+      if (vin) {
+        onScan(vin);
+      } else {
+        setError(
+          "No VIN barcode found in the photo. Get closer to the barcode on the driver-door sticker, make sure it's sharp and well-lit, then try again."
+        );
+      }
+    } catch (err) {
+      console.error("VIN scan failed:", err);
+      setError("Couldn't read that photo. Please try again.");
+    } finally {
+      setBusy(false);
     }
-
-    let cancelled = false;
-    const hints = new Map();
-    // VIN door-jamb stickers most commonly carry Code 39, Data Matrix, or
-    // PDF417 barcodes (QR is rare). TRY_HARDER improves detection of the
-    // small, dense codes typical on VIN labels.
-    hints.set(DecodeHintType.POSSIBLE_FORMATS, [
-      BarcodeFormat.CODE_39,
-      BarcodeFormat.CODE_128,
-      BarcodeFormat.DATA_MATRIX,
-      BarcodeFormat.PDF_417,
-      BarcodeFormat.QR_CODE,
-    ]);
-    hints.set(DecodeHintType.TRY_HARDER, true);
-    const reader = new BrowserMultiFormatReader(hints);
-
-    // Ask for the rear camera explicitly — the default video device on
-    // phones is often the front camera — and a high resolution, since VIN
-    // barcodes are too dense to resolve at the 640x480 default.
-    reader
-      .decodeFromConstraints(
-        {
-          video: {
-            facingMode: { ideal: "environment" },
-            width: { ideal: 1920 },
-            height: { ideal: 1080 },
-          },
-        },
-        videoRef.current!,
-        (result) => {
-          if (cancelled || !result) return;
-          let text = result.getText().trim().toUpperCase();
-          // Code 39 VIN labels often encode an extra leading "I"
-          // (import character) — strip it.
-          if (text.length === 18 && text.startsWith("I")) {
-            text = text.slice(1);
-          }
-          if (VIN_PATTERN.test(text)) {
-            onScan(text);
-            setOpen(false);
-          } else {
-            setStatus(`Scanned "${text}" doesn't look like a valid VIN — keep trying`);
-          }
-        }
-      )
-      .then((controls) => {
-        if (cancelled) {
-          controls.stop();
-        } else {
-          controlsRef.current = controls;
-        }
-      })
-      .catch((err) => {
-        if (!cancelled) {
-          setError(cameraErrorMessage(err));
-        }
-      });
-
-    return () => {
-      cancelled = true;
-      controlsRef.current?.stop();
-      controlsRef.current = null;
-    };
-  }, [open, onScan]);
+  }
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => {
-          setError(null);
-          setStatus(
-            "Point the camera at the VIN barcode (usually on the driver-door sticker). Hold steady about 6 inches away."
-          );
-          setOpen(true);
-        }}
-        className="text-sm text-neutral-500 hover:text-neutral-900"
-      >
+      <label className="cursor-pointer text-sm text-neutral-500 hover:text-neutral-900">
+        <input
+          type="file"
+          accept="image/*"
+          capture="environment"
+          className="sr-only"
+          disabled={busy}
+          onChange={(e) => {
+            handlePhoto(e.target.files?.[0]);
+            e.target.value = "";
+          }}
+        />
         📷 Scan VIN
-      </button>
+      </label>
 
-      {open && (
+      {(busy || error) && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-          <div className="w-full max-w-sm rounded-lg bg-white p-4">
-            <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-neutral-900">Scan VIN</h2>
-              <button
-                type="button"
-                onClick={() => setOpen(false)}
-                className="text-sm text-neutral-500 hover:text-neutral-900"
-              >
-                Cancel
-              </button>
-            </div>
-
-            {error ? (
-              <p className="text-sm text-red-600">{error}</p>
+          <div className="w-full max-w-sm rounded-lg bg-white p-5">
+            {busy ? (
+              <p className="text-base text-neutral-700">Reading barcode…</p>
             ) : (
               <>
-                <video
-                  ref={videoRef}
-                  className="aspect-video w-full rounded-md bg-neutral-900"
-                  autoPlay
-                  muted
-                  playsInline
-                />
-                <p className="mt-2 text-xs text-neutral-500">{status}</p>
+                <p className="text-base text-red-600">{error}</p>
+                <button
+                  type="button"
+                  onClick={() => setError(null)}
+                  className="mt-4 w-full rounded-md bg-neutral-900 px-4 py-2.5 text-base font-medium text-white"
+                >
+                  Close
+                </button>
               </>
             )}
           </div>

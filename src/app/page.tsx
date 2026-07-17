@@ -18,7 +18,8 @@ export default async function Home({
         like(vehicles.vin, `%${q.trim()}%`),
         like(vehicles.make, `%${q.trim()}%`),
         like(vehicles.model, `%${q.trim()}%`),
-        like(vehicles.plate, `%${q.trim()}%`)
+        like(vehicles.plate, `%${q.trim()}%`),
+        like(vehicles.buyerName, `%${q.trim()}%`)
       )
     : undefined;
 
@@ -98,6 +99,9 @@ export default async function Home({
                       .join(" ") || "Vehicle"}
                   </p>
                   <p className="break-all text-sm text-neutral-500">{vehicle.vin}</p>
+                  {vehicle.buyerName && (
+                    <p className="text-sm text-neutral-600">Buyer: {vehicle.buyerName}</p>
+                  )}
                   <p className="mt-2 flex items-center gap-2 text-sm">
                     {last ? (
                       <>
@@ -160,6 +164,11 @@ export default async function Home({
                             .join(" ") || "Vehicle"}
                         </p>
                         <p className="text-xs text-neutral-500">{vehicle.vin}</p>
+                        {vehicle.buyerName && (
+                          <p className="text-xs text-neutral-600">
+                            Buyer: {vehicle.buyerName}
+                          </p>
+                        )}
                       </td>
                       <td className="px-4 py-3">
                         {last ? (

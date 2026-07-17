@@ -25,6 +25,7 @@ export const vehicles = sqliteTable("vehicles", {
   model: text("model"),
   year: integer("year"),
   plate: text("plate"),
+  buyerName: text("buyer_name"),
   vin: text("vin").notNull().unique(),
   active: integer("active", { mode: "boolean" }).notNull().default(true),
   createdAt: text("created_at")

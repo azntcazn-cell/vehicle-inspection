@@ -15,6 +15,7 @@ const vehicleSchema = z.object({
   model: z.string().trim().optional(),
   year: z.coerce.number().int().optional(),
   plate: z.string().trim().optional(),
+  buyerName: z.string().trim().optional(),
   vin: z
     .string()
     .trim()
@@ -73,6 +74,7 @@ function parseVehicleForm(formData: FormData) {
     model: formData.get("model") || undefined,
     year: formData.get("year") || undefined,
     plate: formData.get("plate") || undefined,
+    buyerName: formData.get("buyerName") || undefined,
     vin: formData.get("vin"),
   });
 }

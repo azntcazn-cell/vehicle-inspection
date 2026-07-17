@@ -37,6 +37,7 @@ export default async function InspectionDetailPage({
       vehicleYear: vehicles.year,
       vehicleMake: vehicles.make,
       vehicleModel: vehicles.model,
+      buyerName: vehicles.buyerName,
       inspectorName: users.name,
     })
     .from(inspections)
@@ -106,6 +107,9 @@ export default async function InspectionDetailPage({
           .join(" ") || "Vehicle"}
       </h1>
       <p className="break-all text-sm text-neutral-500">{inspection.vehicleVin}</p>
+      {inspection.buyerName && (
+        <p className="mt-1 text-sm text-neutral-600">Buyer: {inspection.buyerName}</p>
+      )}
       <p className="mt-2 text-sm text-neutral-500">
         Inspected by {inspection.inspectorName} on{" "}
         {new Date(inspection.startedAt).toLocaleString()}
