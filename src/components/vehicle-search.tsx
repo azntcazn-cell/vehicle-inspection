@@ -7,7 +7,7 @@ export function VehicleSearch({ q, action }: { q?: string; action: string }) {
         type="search"
         name="q"
         defaultValue={q ?? ""}
-        placeholder="Search VIN, make, model, plate…"
+        placeholder="Search VIN, make, model, buyer…"
         className="w-full rounded-md border border-neutral-300 px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-neutral-900 sm:max-w-xs"
       />
       <button

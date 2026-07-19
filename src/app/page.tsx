@@ -18,7 +18,6 @@ export default async function Home({
         like(vehicles.vin, `%${q.trim()}%`),
         like(vehicles.make, `%${q.trim()}%`),
         like(vehicles.model, `%${q.trim()}%`),
-        like(vehicles.plate, `%${q.trim()}%`),
         like(vehicles.buyerName, `%${q.trim()}%`)
       )
     : undefined;

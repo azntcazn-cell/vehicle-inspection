@@ -66,7 +66,6 @@ export async function GET(
       year: vehicles.year,
       make: vehicles.make,
       model: vehicles.model,
-      plate: vehicles.plate,
       buyerName: vehicles.buyerName,
       inspectorName: users.name,
     })
@@ -161,7 +160,6 @@ export async function GET(
         .filter(Boolean)
         .join(" ") || "Vehicle",
     vin: inspection.vin,
-    plate: inspection.plate,
     buyerName: inspection.buyerName,
     odometer: inspection.odometer,
     inspectorName: inspection.inspectorName,

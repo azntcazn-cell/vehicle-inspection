@@ -10,7 +10,6 @@ type Vehicle = {
   make: string | null;
   model: string | null;
   year: number | null;
-  plate: string | null;
   buyerName: string | null;
   vin: string;
 };
@@ -112,7 +111,6 @@ export function VehicleForm({
         defaultValue={vehicle?.year ?? ""}
         inputRef={yearInputRef}
       />
-      <Field label="Plate" name="plate" defaultValue={vehicle?.plate ?? ""} />
       <Field
         label="Buyer name"
         name="buyerName"

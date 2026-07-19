@@ -19,7 +19,6 @@ export default async function VehiclesPage({
         like(vehicles.vin, `%${q.trim()}%`),
         like(vehicles.make, `%${q.trim()}%`),
         like(vehicles.model, `%${q.trim()}%`),
-        like(vehicles.plate, `%${q.trim()}%`),
         like(vehicles.buyerName, `%${q.trim()}%`)
       )
     : undefined;
@@ -49,7 +48,6 @@ export default async function VehiclesPage({
                 <th className="px-4 py-3 font-medium">VIN</th>
                 <th className="px-4 py-3 font-medium">Make / Model</th>
                 <th className="px-4 py-3 font-medium">Year</th>
-                <th className="px-4 py-3 font-medium">Plate</th>
                 <th className="px-4 py-3 font-medium">Buyer</th>
                 <th className="px-4 py-3 font-medium">Status</th>
                 <th className="px-4 py-3 font-medium"></th>
@@ -68,7 +66,6 @@ export default async function VehiclesPage({
                     {[vehicle.make, vehicle.model].filter(Boolean).join(" ") || "—"}
                   </td>
                   <td className="px-4 py-3 text-neutral-600">{vehicle.year ?? "—"}</td>
-                  <td className="px-4 py-3 text-neutral-600">{vehicle.plate ?? "—"}</td>
                   <td className="px-4 py-3 text-neutral-600">
                     {vehicle.buyerName ?? "—"}
                   </td>

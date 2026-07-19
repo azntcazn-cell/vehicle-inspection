@@ -12,7 +12,6 @@ export type PdfImage = { data: Buffer; format: "png" | "jpg" };
 export type InspectionPdfData = {
   vehicleTitle: string;
   vin: string;
-  plate: string | null;
   buyerName: string | null;
   odometer: number | null;
   inspectorName: string;
@@ -169,7 +168,6 @@ export function InspectionPdf({ data }: { data: InspectionPdfData }) {
         <View style={styles.metaBox}>
           <Meta label="Vehicle" value={data.vehicleTitle} />
           <Meta label="VIN" value={data.vin} />
-          <Meta label="Plate" value={data.plate ?? "—"} />
           <Meta label="Buyer" value={data.buyerName ?? "—"} />
           <Meta
             label="Odometer"
