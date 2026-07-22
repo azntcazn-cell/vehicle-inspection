@@ -46,16 +46,21 @@ export function VehicleDiagram({
   }
 
   function handlePointerDown(e: React.PointerEvent<HTMLCanvasElement>) {
-    if (mode === "label") {
-      const pos = getPos(e.clientX, e.clientY);
-      const id = Date.now();
-      setLabels((prev) => [...prev, { id, x: pos.x, y: pos.y, text: "" }]);
-      setEditingId(id);
-      return;
-    }
+    // Label pins are placed on click (see handleClick) — placing them on
+    // pointerdown lets the browser's native mousedown focus handling blur
+    // the freshly-focused input on desktop, which deletes the empty label.
+    if (mode === "label") return;
     drawing.current = true;
     lastPoint.current = getPos(e.clientX, e.clientY);
     e.currentTarget.setPointerCapture(e.pointerId);
+  }
+
+  function handleClick(e: React.MouseEvent<HTMLCanvasElement>) {
+    if (mode !== "label") return;
+    const pos = getPos(e.clientX, e.clientY);
+    const id = Date.now();
+    setLabels((prev) => [...prev, { id, x: pos.x, y: pos.y, text: "" }]);
+    setEditingId(id);
   }
 
   function handlePointerMove(e: React.PointerEvent<HTMLCanvasElement>) {
@@ -246,6 +251,7 @@ export function VehicleDiagram({
           height={HEIGHT}
           className="absolute inset-0 h-full w-full touch-none"
           style={{ cursor: mode === "draw" ? "crosshair" : "copy" }}
+          onClick={handleClick}
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
