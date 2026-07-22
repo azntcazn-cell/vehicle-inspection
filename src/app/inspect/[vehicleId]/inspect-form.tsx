@@ -105,9 +105,9 @@ export function InspectForm({
                 <input
                   type="text"
                   name={`notes-${item.id}`}
-                  placeholder="Notes (optional)"
+                  placeholder="📝 Add a note…"
                   defaultValue={initialItem?.notes ?? ""}
-                  className="w-full rounded-md border border-neutral-300 px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-neutral-900"
+                  className="w-full rounded-md border-2 border-amber-300 bg-amber-50 px-3 py-2.5 text-base placeholder:text-amber-700/70 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-400"
                 />
                 <MediaUpload itemId={item.id} initialMedia={initialItem?.media} />
               </div>
@@ -117,15 +117,16 @@ export function InspectForm({
       ))}
 
       <div className="flex flex-col gap-1">
-        <label htmlFor="notes" className="text-base font-medium text-neutral-700">
-          Overall notes
+        <label htmlFor="notes" className="text-base font-medium text-amber-800">
+          📝 Overall notes
         </label>
         <textarea
           id="notes"
           name="notes"
           rows={3}
           defaultValue={initialData?.notes ?? ""}
-          className="rounded-md border border-neutral-300 px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-neutral-900"
+          placeholder="Add any overall notes…"
+          className="rounded-md border-2 border-amber-300 bg-amber-50 px-3 py-2.5 text-base placeholder:text-amber-700/70 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-400"
         />
       </div>
 
