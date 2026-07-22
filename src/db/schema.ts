@@ -49,6 +49,9 @@ export const checklistItems = sqliteTable("checklist_items", {
   category: text("category").notNull(),
   label: text("label").notNull(),
   sortOrder: integer("sort_order").notNull().default(0),
+  // Items used in past inspections are soft-deleted (active=false) so their
+  // historical results still resolve; unused items are hard-deleted.
+  active: integer("active", { mode: "boolean" }).notNull().default(true),
 });
 
 export const inspections = sqliteTable("inspections", {

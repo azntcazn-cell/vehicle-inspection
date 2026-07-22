@@ -1,4 +1,4 @@
-import { eq, inArray } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { notFound, redirect } from "next/navigation";
 import { db } from "@/db";
 import {
@@ -42,7 +42,12 @@ export default async function EditInspectionPage({
   const items = await db
     .select()
     .from(checklistItems)
-    .where(eq(checklistItems.templateId, inspection.templateId))
+    .where(
+      and(
+        eq(checklistItems.templateId, inspection.templateId),
+        eq(checklistItems.active, true)
+      )
+    )
     .orderBy(checklistItems.sortOrder);
 
   const itemsByCategory = Object.entries(

@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { checklistTemplates, checklistItems } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth-helpers";
@@ -19,7 +19,12 @@ export default async function AdminChecklistPage() {
     ? await db
         .select()
         .from(checklistItems)
-        .where(eq(checklistItems.templateId, template.id))
+        .where(
+          and(
+            eq(checklistItems.templateId, template.id),
+            eq(checklistItems.active, true)
+          )
+        )
         .orderBy(checklistItems.sortOrder)
     : [];
 

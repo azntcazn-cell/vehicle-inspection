@@ -1,11 +1,11 @@
 "use server";
 
-import { and, asc, desc, eq, gt, lt, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, gt, lt, sql } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { db } from "@/db";
-import { checklistItems } from "@/db/schema";
+import { checklistItems, inspectionResults } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth-helpers";
 
 const itemSchema = z.object({
@@ -70,7 +70,24 @@ export async function updateChecklistItem(
 
 export async function deleteChecklistItem(id: number) {
   await requireAdmin();
-  await db.delete(checklistItems).where(eq(checklistItems.id, id));
+
+  // If the item has been used in any inspection, hard-deleting it would
+  // violate the inspection_results foreign key (and destroy history), so
+  // soft-delete instead. Unused items are safe to remove outright.
+  const [{ value: used }] = await db
+    .select({ value: count() })
+    .from(inspectionResults)
+    .where(eq(inspectionResults.itemId, id));
+
+  if (used > 0) {
+    await db
+      .update(checklistItems)
+      .set({ active: false })
+      .where(eq(checklistItems.id, id));
+  } else {
+    await db.delete(checklistItems).where(eq(checklistItems.id, id));
+  }
+
   revalidatePath("/admin/checklist");
 }
 
@@ -92,6 +109,7 @@ export async function moveChecklistItem(id: number, direction: "up" | "down") {
           .where(
             and(
               eq(checklistItems.templateId, item.templateId),
+              eq(checklistItems.active, true),
               lt(checklistItems.sortOrder, item.sortOrder)
             )
           )
@@ -103,6 +121,7 @@ export async function moveChecklistItem(id: number, direction: "up" | "down") {
           .where(
             and(
               eq(checklistItems.templateId, item.templateId),
+              eq(checklistItems.active, true),
               gt(checklistItems.sortOrder, item.sortOrder)
             )
           )

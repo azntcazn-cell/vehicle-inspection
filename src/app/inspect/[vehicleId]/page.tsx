@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { db } from "@/db";
 import { vehicles, checklistTemplates, checklistItems } from "@/db/schema";
@@ -28,7 +28,12 @@ export default async function InspectPage({
   const items = await db
     .select()
     .from(checklistItems)
-    .where(eq(checklistItems.templateId, template.id))
+    .where(
+      and(
+        eq(checklistItems.templateId, template.id),
+        eq(checklistItems.active, true)
+      )
+    )
     .orderBy(checklistItems.sortOrder);
 
   const itemsByCategory = Object.entries(

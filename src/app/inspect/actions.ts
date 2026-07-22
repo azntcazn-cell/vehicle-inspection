@@ -1,6 +1,6 @@
 "use server";
 
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { db } from "@/db";
@@ -80,7 +80,12 @@ async function parseInspectionForm(
   const items = await db
     .select()
     .from(checklistItems)
-    .where(eq(checklistItems.templateId, templateId));
+    .where(
+      and(
+        eq(checklistItems.templateId, templateId),
+        eq(checklistItems.active, true)
+      )
+    );
 
   const results: ParsedInspectionForm["results"] = [];
 
