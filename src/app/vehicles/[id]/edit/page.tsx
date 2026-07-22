@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { db } from "@/db";
 import { vehicles } from "@/db/schema";
-import { requireAdmin } from "@/lib/auth-helpers";
+import { requireInspector } from "@/lib/auth-helpers";
 import { VehicleForm } from "../../vehicle-form";
 import { updateVehicle } from "../../actions";
 
@@ -11,7 +11,7 @@ export default async function EditVehiclePage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireAdmin();
+  await requireInspector();
   const { id } = await params;
   const vehicleId = Number(id);
 

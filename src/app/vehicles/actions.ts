@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { db } from "@/db";
 import { vehicles } from "@/db/schema";
-import { requireAdmin } from "@/lib/auth-helpers";
+import { requireInspector } from "@/lib/auth-helpers";
 
 const VIN_PATTERN = /^[A-HJ-NPR-Z0-9]{17}$/;
 
@@ -29,7 +29,7 @@ export type VinDecodeResult =
   | { error: string };
 
 export async function decodeVin(vin: string): Promise<VinDecodeResult> {
-  await requireAdmin();
+  await requireInspector();
 
   const cleaned = vin.trim().toUpperCase();
   if (!VIN_PATTERN.test(cleaned)) {
@@ -81,7 +81,7 @@ export async function createVehicle(
   _prevState: VehicleFormState,
   formData: FormData
 ): Promise<VehicleFormState> {
-  await requireAdmin();
+  await requireInspector();
 
   let data;
   try {
@@ -104,7 +104,7 @@ export async function updateVehicle(
   _prevState: VehicleFormState,
   formData: FormData
 ): Promise<VehicleFormState> {
-  await requireAdmin();
+  await requireInspector();
 
   let data;
   try {
@@ -123,7 +123,7 @@ export async function updateVehicle(
 }
 
 export async function toggleVehicleActive(id: number, active: boolean) {
-  await requireAdmin();
+  await requireInspector();
   await db.update(vehicles).set({ active }).where(eq(vehicles.id, id));
   revalidatePath("/vehicles");
 }

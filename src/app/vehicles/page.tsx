@@ -2,7 +2,7 @@ import Link from "next/link";
 import { desc, like, or } from "drizzle-orm";
 import { db } from "@/db";
 import { vehicles } from "@/db/schema";
-import { requireAdmin } from "@/lib/auth-helpers";
+import { requireInspector } from "@/lib/auth-helpers";
 import { ToggleActiveButton } from "./toggle-active-button";
 import { VehicleSearch } from "@/components/vehicle-search";
 
@@ -11,7 +11,7 @@ export default async function VehiclesPage({
 }: {
   searchParams: Promise<{ q?: string }>;
 }) {
-  await requireAdmin();
+  await requireInspector();
   const { q } = await searchParams;
 
   const search = q?.trim()

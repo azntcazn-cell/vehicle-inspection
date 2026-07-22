@@ -3,6 +3,7 @@ import { users } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth-helpers";
 import { UserForm } from "./user-form";
 import { ToggleUserActiveButton } from "./toggle-user-active-button";
+import { DeleteUserButton } from "./delete-user-button";
 
 export default async function AdminUsersPage() {
   await requireAdmin();
@@ -45,7 +46,10 @@ export default async function AdminUsersPage() {
                   </span>
                 </td>
                 <td className="px-4 py-3">
-                  <ToggleUserActiveButton id={user.id} active={user.active} />
+                  <div className="flex items-center gap-3">
+                    <ToggleUserActiveButton id={user.id} active={user.active} />
+                    <DeleteUserButton id={user.id} />
+                  </div>
                 </td>
               </tr>
             ))}

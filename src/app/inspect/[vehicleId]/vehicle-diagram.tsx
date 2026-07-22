@@ -81,24 +81,26 @@ export function VehicleDiagram({
   function handlePointerUp() {
     if (mode !== "draw" || !drawing.current) return;
     drawing.current = false;
-    saveDiagram();
+    saveDiagram(labels);
   }
 
   function commitLabel(id: number, text: string) {
     const trimmed = text.trim();
-    setLabels((prev) =>
-      trimmed
-        ? prev.map((l) => (l.id === id ? { ...l, text: trimmed } : l))
-        : prev.filter((l) => l.id !== id)
-    );
+    const next = trimmed
+      ? labels.map((l) => (l.id === id ? { ...l, text: trimmed } : l))
+      : labels.filter((l) => l.id !== id);
+    setLabels(next);
     setEditingId(null);
-    saveDiagram();
+    // Pass the updated labels explicitly — saveDiagram would otherwise read
+    // the stale `labels` closure and omit the label just typed.
+    saveDiagram(next);
   }
 
   function removeLabel(id: number) {
-    setLabels((prev) => prev.filter((l) => l.id !== id));
+    const next = labels.filter((l) => l.id !== id);
+    setLabels(next);
     if (editingId === id) setEditingId(null);
-    saveDiagram();
+    saveDiagram(next);
   }
 
   function clearCanvas() {
@@ -110,7 +112,7 @@ export function VehicleDiagram({
     setDiagramUrl("");
   }
 
-  async function saveDiagram() {
+  async function saveDiagram(labelsToSave: Label[] = labels) {
     setSaving(true);
     setSaveError(false);
     onSavingChange?.(true);
@@ -134,7 +136,7 @@ export function VehicleDiagram({
       octx.drawImage(bg, 0, 0, WIDTH, HEIGHT);
       octx.drawImage(canvas, 0, 0);
 
-      labels.forEach((label, i) => {
+      labelsToSave.forEach((label, i) => {
         if (!label.text.trim()) return;
         octx.beginPath();
         octx.arc(label.x, label.y, 10, 0, Math.PI * 2);
@@ -330,7 +332,7 @@ export function VehicleDiagram({
           Couldn&apos;t save the diagram — check your connection.{" "}
           <button
             type="button"
-            onClick={saveDiagram}
+            onClick={() => saveDiagram()}
             className="font-medium underline"
           >
             Retry

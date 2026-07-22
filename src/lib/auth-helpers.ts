@@ -30,9 +30,22 @@ export async function requireAdmin() {
   return session;
 }
 
+// Admins and inspectors can manage vehicles and run inspections; viewers
+// have read-only access.
+export async function requireInspector() {
+  const session = await requireSession();
+  if (session.user.role === "viewer") redirect("/");
+  return session;
+}
+
+export function canInspect(role: "admin" | "inspector" | "viewer") {
+  return role !== "viewer";
+}
+
 export function canEditInspection(
-  session: { user: { id: string; role: "admin" | "inspector" } },
+  session: { user: { id: string; role: "admin" | "inspector" | "viewer" } },
   inspectorId: number
 ) {
+  if (session.user.role === "viewer") return false;
   return session.user.role === "admin" || Number(session.user.id) === inspectorId;
 }

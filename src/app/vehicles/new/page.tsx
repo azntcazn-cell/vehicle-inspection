@@ -1,9 +1,9 @@
-import { requireAdmin } from "@/lib/auth-helpers";
+import { requireInspector } from "@/lib/auth-helpers";
 import { VehicleForm } from "../vehicle-form";
 import { createVehicle } from "../actions";
 
 export default async function NewVehiclePage() {
-  await requireAdmin();
+  await requireInspector();
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">

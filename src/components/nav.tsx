@@ -12,11 +12,11 @@ export async function Nav() {
   // expires — check the DB so the nav doesn't show them as authenticated
   // (matches the live check requireSession() does for actual page access).
   const [user] = await db
-    .select({ active: users.active })
+    .select({ active: users.active, role: users.role })
     .from(users)
     .where(eq(users.id, Number(session.user.id)))
     .limit(1);
   if (!user?.active) return null;
 
-  return <NavBar name={session.user.name ?? ""} isAdmin={session.user.role === "admin"} />;
+  return <NavBar name={session.user.name ?? ""} role={user.role} />;
 }

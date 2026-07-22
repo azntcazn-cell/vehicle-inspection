@@ -10,7 +10,11 @@ import {
   inspectionResults,
   inspectionMedia,
 } from "@/db/schema";
-import { requireSession, canEditInspection } from "@/lib/auth-helpers";
+import {
+  requireSession,
+  requireInspector,
+  canEditInspection,
+} from "@/lib/auth-helpers";
 import { storeMedia } from "@/lib/media-storage";
 
 export type InspectionFormState = { error?: string } | undefined;
@@ -20,7 +24,7 @@ const MAX_FILE_BYTES = 25 * 1024 * 1024; // 25MB
 export async function uploadInspectionMedia(
   formData: FormData
 ): Promise<{ url: string; type: "image" | "video" }> {
-  await requireSession();
+  await requireInspector();
 
   const file = formData.get("file");
   if (!(file instanceof File) || file.size === 0) {
@@ -139,7 +143,7 @@ export async function submitInspection(
   _prevState: InspectionFormState,
   formData: FormData
 ): Promise<InspectionFormState> {
-  const session = await requireSession();
+  const session = await requireInspector();
 
   const parsed = await parseInspectionForm(templateId, formData);
   if ("error" in parsed) return parsed;

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { and, desc, eq, inArray, like, or } from "drizzle-orm";
 import { db } from "@/db";
 import { vehicles, inspections, inspectionResults } from "@/db/schema";
-import { requireSession } from "@/lib/auth-helpers";
+import { requireSession, canInspect } from "@/lib/auth-helpers";
 import { VehicleSearch } from "@/components/vehicle-search";
 
 export default async function Home({
@@ -11,6 +11,7 @@ export default async function Home({
   searchParams: Promise<{ q?: string }>;
 }) {
   const session = await requireSession();
+  const inspects = canInspect(session.user.role);
   const { q } = await searchParams;
 
   const search = q?.trim()
@@ -64,7 +65,7 @@ export default async function Home({
     <div className="mx-auto max-w-5xl px-4 py-8">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold text-neutral-900">Dashboard</h1>
-        {session.user.role === "admin" && (
+        {inspects && (
           <Link
             href="/vehicles/new"
             className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-neutral-700"
@@ -125,14 +126,14 @@ export default async function Home({
                       >
                         View Inspection
                       </Link>
-                    ) : (
+                    ) : inspects ? (
                       <Link
                         href={`/inspect/${vehicle.id}`}
                         className="block w-full rounded-md bg-neutral-900 px-4 py-3 text-center text-base font-medium text-white transition hover:bg-neutral-700"
                       >
                         Start Inspection
                       </Link>
-                    )}
+                    ) : null}
                   </div>
                 </div>
               );
@@ -193,14 +194,14 @@ export default async function Home({
                           >
                             View Inspection
                           </Link>
-                        ) : (
+                        ) : inspects ? (
                           <Link
                             href={`/inspect/${vehicle.id}`}
                             className="whitespace-nowrap rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-neutral-700"
                           >
                             Start Inspection
                           </Link>
-                        )}
+                        ) : null}
                       </td>
                     </tr>
                   );

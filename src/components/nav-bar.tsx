@@ -4,19 +4,25 @@ import { useState } from "react";
 import Link from "next/link";
 import { SignOutButton } from "./sign-out-button";
 
+type Role = "admin" | "inspector" | "viewer";
+
 const baseLinks = [
   { href: "/", label: "Dashboard" },
   { href: "/history", label: "History" },
 ];
+const vehiclesLink = { href: "/vehicles", label: "Vehicles" };
 const adminLinks = [
-  { href: "/vehicles", label: "Vehicles" },
   { href: "/admin/users", label: "Users" },
   { href: "/admin/checklist", label: "Checklist" },
 ];
 
-export function NavBar({ name, isAdmin }: { name: string; isAdmin: boolean }) {
+export function NavBar({ name, role }: { name: string; role: Role }) {
   const [open, setOpen] = useState(false);
-  const links = isAdmin ? [...baseLinks, ...adminLinks] : baseLinks;
+  const links = [
+    ...baseLinks,
+    ...(role !== "viewer" ? [vehiclesLink] : []),
+    ...(role === "admin" ? adminLinks : []),
+  ];
 
   return (
     <nav className="border-b border-neutral-200 bg-white">

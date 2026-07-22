@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { db } from "@/db";
 import { vehicles, checklistTemplates, checklistItems } from "@/db/schema";
-import { requireSession } from "@/lib/auth-helpers";
+import { requireInspector } from "@/lib/auth-helpers";
 import { submitInspection } from "../actions";
 import { InspectForm } from "./inspect-form";
 
@@ -11,7 +11,7 @@ export default async function InspectPage({
 }: {
   params: Promise<{ vehicleId: string }>;
 }) {
-  await requireSession();
+  await requireInspector();
   const { vehicleId } = await params;
   const id = Number(vehicleId);
 
