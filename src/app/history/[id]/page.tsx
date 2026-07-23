@@ -244,9 +244,13 @@ export default async function InspectionDetailPage({
       </div>
 
       {inspection.notes && (
-        <div className="mt-6">
-          <h2 className="mb-2 text-lg font-semibold text-neutral-900">Overall notes</h2>
-          <p className="text-base text-neutral-600">{inspection.notes}</p>
+        <div className="mt-6 rounded-lg border-2 border-amber-300 bg-amber-50 p-4">
+          <h2 className="mb-1 text-lg font-semibold text-amber-800">
+            📝 Overall notes
+          </h2>
+          <p className="whitespace-pre-wrap text-base text-neutral-800">
+            {inspection.notes}
+          </p>
         </div>
       )}
     </div>
